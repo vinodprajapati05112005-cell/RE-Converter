@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Regular Expression - Starts with 0, Ends with 1</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #0a2a4a, #0d4f7c, #1a7aad, #5bc8e8);
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      color: #e0f7ff;
+      padding: 24px;
+      margin: 0;
+    }
+    .container {
+      max-width: 860px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #5bc8e8;
+      font-size: 1.6em;
+      border-bottom: 2px solid #1a7aad;
+      padding-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #a8dff0;
+      font-size: 0.95em;
+      margin-bottom: 20px;
+    }
+    .card {
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0;
+      background: #0d3a5c;
+    }
+    .card-blue   { border-left: 4px solid #5bc8e8; }
+    .card-mid    { border-left: 4px solid #1a7aad; }
+    .card-red    { border-left: 4px solid #e05c5c; }
+    .card-yellow { border-left: 4px solid #f0c040; }
+    .card-green  { border-left: 4px solid #40c0a0; }
+    .card-purple { border-left: 4px solid #a070f0; }
+    h2 { margin-top: 0; }
+    .card-blue h2   { color: #5bc8e8; }
+    .card-mid h2    { color: #5bc8e8; }
+    .card-red h2    { color: #ff8a8a; }
+    .card-yellow h2 { color: #f0e080; }
+    .card-green h2  { color: #40e0b0; }
+    .card-purple h2 { color: #c0a0ff; }
+    .re-box {
+      font-size: 1.5em;
+      text-align: center;
+      color: #ffffff;
+      background: #0a2a4a;
+      padding: 14px;
+      border-radius: 8px;
+      letter-spacing: 2px;
+    }
+    .note { color: #a8dff0; font-size: 0.9em; text-align: center; margin-top: 8px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #cceeff;
+    }
+    th {
+      padding: 10px;
+      border: 1px solid #1a7aad;
+      color: #5bc8e8;
+      background: #0a2a4a;
+    }
+    td {
+      padding: 8px 10px;
+      border: 1px solid #1a7aad;
+    }
+    tr:nth-child(even) { background: #0a2a4a; }
+    code {
+      background: #0a2a4a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #5bc8e8;
+    }
+    ul, ol { color: #a8dff0; line-height: 1.9; }
+    .final-box {
+      background: #0a2a4a;
+      padding: 10px;
+      border-radius: 8px;
+      color: #ffffff;
+      text-align: center;
+      font-size: 1.1em;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🔵 Formal Regular Expression Converter</h1>
+  <p class="subtitle">Alphabet: {0, 1} &nbsp;|&nbsp; Input: <em>"All binary strings that start with 0 and end with 1"</em></p>
+
+  <!-- Final RE -->
+  <div class="card card-blue">
+    <h2>✅ Final Regular Expression</h2>
+    <div class="re-box">0(0+1)*1</div>
+    <p class="note">The middle <code>(0+1)*</code> generates ε when empty, giving the shortest valid string <code>01</code>.</p>
+  </div>
+
+  <!-- Explanation -->
+  <div class="card card-mid">
+    <h2>🧠 Explanation (Step-by-Step)</h2>
+    <table>
+      <tr><th>Part</th><th>Component</th><th>Role</th></tr>
+      <tr><td>1</td><td><code>0</code></td><td>String must begin with 0 — fixed first symbol</td></tr>
+      <tr><td>2</td><td><code>(0+1)*</code></td><td>Any combination of 0s and 1s in the middle (zero or more)</td></tr>
+      <tr><td>3</td><td><code>1</code></td><td>String must end with 1 — fixed last symbol</td></tr>
+    </table>
+    <p style="color:#a8dff0; margin-top:12px;">
+      When <code>(0+1)*</code> generates ε, the result is <code>0·ε·1 = 01</code>, the shortest valid string.
+      So <strong>0(0+1)*1</strong> covers all cases including the minimal string <code>01</code>.
+    </p>
+  </div>
+
+  <!-- Valid Strings -->
+  <div class="card card-mid">
+    <h2>✔️ Valid Strings</h2>
+    <table>
+      <tr><th>String</th><th>Why Valid</th></tr>
+      <tr><td><code>01</code></td><td>Starts with 0, ends with 1, middle = ε</td></tr>
+      <tr><td><code>001</code></td><td>Starts with 0, middle = 0, ends with 1</td></tr>
+      <tr><td><code>011</code></td><td>Starts with 0, middle = 1, ends with 1</td></tr>
+      <tr><td><code>0101</code></td><td>Starts with 0, middle = 10, ends with 1</td></tr>
+      <tr><td><code>00001</code></td><td>Starts with 0, middle = 000, ends with 1</td></tr>
+      <tr><td><code>010101</code></td><td>Starts with 0, alternating middle, ends with 1</td></tr>
+    </table>
+  </div>
+
+  <!-- Invalid Strings -->
+  <div class="card card-red">
+    <h2>❌ Invalid Strings</h2>
+    <table>
+      <tr><th>String</th><th>Why Invalid</th></tr>
+      <tr><td><code>10</code></td><td>Starts with 1, not 0</td></tr>
+      <tr><td><code>00</code></td><td>Starts with 0 but ends with 0, not 1</td></tr>
+      <tr><td><code>1</code></td><td>Does not start with 0</td></tr>
+      <tr><td><code>0</code></td><td>Starts with 0 but ends with 0, not 1</td></tr>
+      <tr><td><code>110</code></td><td>Starts with 1, ends with 0 — both conditions fail</td></tr>
+      <tr><td>ε</td><td>Empty string has no first or last symbol</td></tr>
+    </table>
+  </div>
+
+  <!-- Edge Cases -->
+  <div class="card card-yellow">
+    <h2>⚠️ Edge Case Analysis</h2>
+    <table>
+      <tr><th>Case</th><th>String</th><th>Verdict</th></tr>
+      <tr><td>Empty string ε</td><td>ε</td><td>❌ Rejected — no start/end symbols exist</td></tr>
+      <tr><td>Single symbol</td><td><code>0</code> or <code>1</code></td><td>❌ Rejected — can't satisfy both conditions with one char</td></tr>
+      <tr><td>Minimum valid</td><td><code>01</code></td><td>✅ Accepted — 0(ε)1, middle is empty</td></tr>
+      <tr><td>All zeros</td><td><code>000</code></td><td>❌ Rejected — ends with 0</td></tr>
+      <tr><td>All ones</td><td><code>111</code></td><td>❌ Rejected — starts with 1</td></tr>
+    </table>
+  </div>
+
+  <!-- Alternative -->
+  <div class="card card-blue">
+    <h2>🔁 Alternative Expression</h2>
+    <p style="color:#cceeff;">The expression can also be written by expanding the middle explicitly:</p>
+    <div class="re-box" style="font-size:1.2em;">0(0+1)*1</div>
+    <p style="color:#a8dff0; margin-top:8px;">
+      Both forms are equivalent. There is no simpler form since the leading <code>0</code> and trailing <code>1</code>
+      are mandatory, and the middle must allow any binary string including ε.
+    </p>
+  </div>
+
+  <!-- Optimization -->
+  <div class="card card-green">
+    <h2>🚀 Optimization Note</h2>
+    <p style="color:#cceeff;">The expression <strong>0(0+1)*1</strong> is already optimal:</p>
+    <ul>
+      <li>The leading <code>0</code> cannot be absorbed into <code>(0+1)*</code> without losing the "must start with 0" constraint.</li>
+      <li>The trailing <code>1</code> cannot be absorbed into <code>(0+1)*</code> without losing the "must end with 1" constraint.</li>
+      <li><code>(0+1)*</code> is the most compact way to express "any binary string of any length including ε".</li>
+      <li>No further reduction is possible without changing the language.</li>
+    </ul>
+  </div>
+
+  <!-- Quick Test -->
+  <div class="card card-purple">
+    <h2>🧪 Quick Test Logic</h2>
+    <p style="color:#cceeff;">To verify correctness in an exam, apply this 3-step check:</p>
+    <ol>
+      <li><strong style="color:#5bc8e8;">Check first symbol</strong> — must be <code>0</code>. If not, reject immediately.</li>
+      <li><strong style="color:#5bc8e8;">Check last symbol</strong> — must be <code>1</code>. If not, reject immediately.</li>
+      <li><strong style="color:#5bc8e8;">Check middle</strong> — any combination of 0s and 1s (including nothing for <code>01</code>).</li>
+    </ol>
+    <p style="color:#a8dff0;">If all three pass → ✅ Accept. If any fail → ❌ Reject.</p>
+    <div class="final-box">Final Answer: &nbsp; <strong>0(0+1)*1</strong></div>
+  </div>
+
+</div>
+</body>
+</html>
