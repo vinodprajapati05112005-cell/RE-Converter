@@ -247,7 +247,9 @@
 </footer>
 
 <script>
-  const API = 'http://127.0.0.1:8000/api';
+  const API = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+    ? 'http://127.0.0.1:8000/api'
+    : window.location.origin + '/api';
 
   function toggleCard(id) {
     const body    = document.getElementById('body-' + id);
