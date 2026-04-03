@@ -1,0 +1,399 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Regex Automata — Theory of Computation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+    :root {
+      --bg-deep:#050f1a; --bg-card:#0a1e30; --bg-input:#071525;
+      --border:#0e3a5c; --border-hi:#1a7aad;
+      --accent:#38b6e8; --accent2:#0d8fd4;
+      --text:#d6eeff; --muted:#6a9ab8;
+      --valid-bg:#052a14; --valid-fg:#34d17a;
+      --invalid-bg:#2a0505; --invalid-fg:#f07070;
+      --glow:0 0 24px rgba(56,182,232,0.12);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      background:var(--bg-deep);
+      background-image:radial-gradient(ellipse at 20% 10%,rgba(13,143,212,0.08) 0%,transparent 60%),
+                       radial-gradient(ellipse at 80% 80%,rgba(56,182,232,0.06) 0%,transparent 60%);
+      min-height:100vh; font-family:'Inter',sans-serif; color:var(--text);
+      padding:32px 16px 0; display:flex; flex-direction:column;
+    }
+    .container{max-width:920px;margin:auto;width:100%;flex:1;}
+
+    /* Header */
+    .header{text-align:center;margin-bottom:36px;}
+    .header h1{font-size:clamp(1.4em,4vw,2em);font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:6px;}
+    .header h1 span{color:var(--accent);}
+    .header p{color:var(--muted);font-size:0.88em;font-weight:300;}
+    .divider{width:60px;height:3px;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:2px;margin:14px auto 0;}
+
+    .section-label{font-size:0.68em;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:12px;}
+    .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.68em;font-weight:600;background:rgba(56,182,232,0.1);color:var(--accent);border:1px solid rgba(56,182,232,0.25);margin-left:8px;vertical-align:middle;}
+
+    /* Cards */
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:var(--glow);}
+    .card-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+    .card-header h2{font-size:0.95em;font-weight:600;color:#fff;}
+    .card-header p{color:var(--muted);font-size:0.8em;margin-top:3px;}
+    .card-header-left{flex:1;}
+    .chevron{color:var(--accent);font-size:1.1em;transition:transform 0.3s;flex-shrink:0;margin-left:12px;}
+    .chevron.open{transform:rotate(180deg);}
+    .card-body{overflow:hidden;max-height:0;transition:max-height 0.4s ease, opacity 0.3s ease;opacity:0;}
+    .card-body.open{max-height:2000px;opacity:1;}
+    .card-divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+
+    /* NLP */
+    .nlp-input-row{display:flex;gap:10px;flex-wrap:wrap;}
+    .nlp-input-row input{flex:1;min-width:200px;}
+    .nlp-result{margin-top:18px;display:none;}
+    .nlp-re-box{font-family:'JetBrains Mono',monospace;font-size:clamp(1.3em,4vw,2em);font-weight:600;text-align:center;color:#fff;background:var(--bg-input);border:1px solid var(--border-hi);padding:16px;border-radius:10px;letter-spacing:4px;margin-bottom:10px;}
+    .nlp-desc{color:var(--muted);text-align:center;font-size:0.83em;margin-bottom:14px;}
+    .nlp-error{background:var(--invalid-bg);color:var(--invalid-fg);border:1px solid var(--invalid-fg);padding:12px 16px;border-radius:8px;font-size:0.85em;}
+    .suggestions{margin-top:10px;}
+    .suggestions p{color:var(--muted);font-size:0.76em;margin-bottom:8px;}
+    .suggestions span{display:inline-block;margin:3px;padding:5px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:0.76em;color:var(--muted);transition:all 0.2s;}
+    .suggestions span:hover{border-color:var(--accent);color:var(--accent);}
+
+    /* Pattern grid */
+    .patterns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:0;}
+    .pattern-card{background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:border-color 0.2s,transform 0.15s,box-shadow 0.2s;}
+    .pattern-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px rgba(56,182,232,0.1);}
+    .pattern-card.active{border-color:var(--accent);background:#0b2035;box-shadow:0 0 0 1px var(--accent);}
+    .pattern-card .re{font-family:'JetBrains Mono',monospace;font-size:0.95em;font-weight:600;color:var(--accent);margin-bottom:6px;}
+    .pattern-card .desc{font-size:0.73em;color:var(--muted);line-height:1.5;}
+
+    /* Detail panel */
+    .detail-section{margin-bottom:18px;}
+    .re-box{font-family:'JetBrains Mono',monospace;font-size:clamp(1.2em,3vw,1.8em);font-weight:600;text-align:center;color:#fff;background:var(--bg-input);border:1px solid var(--border-hi);padding:14px;border-radius:10px;letter-spacing:4px;}
+
+    table{width:100%;border-collapse:collapse;font-size:0.83em;}
+    th{padding:9px 12px;border:1px solid var(--border);color:var(--accent);background:var(--bg-input);font-weight:500;text-align:left;}
+    td{padding:8px 12px;border:1px solid var(--border);color:var(--text);}
+    tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
+
+    .tags{display:flex;flex-wrap:wrap;gap:8px;}
+    .tag{padding:4px 12px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:0.8em;font-weight:600;}
+    .tag.valid{background:var(--valid-bg);color:var(--valid-fg);border:1px solid var(--valid-fg);}
+    .tag.invalid{background:var(--invalid-bg);color:var(--invalid-fg);border:1px solid var(--invalid-fg);}
+
+    /* Inputs & buttons */
+    select,input[type="text"]{background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:0.86em;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;width:100%;}
+    select{flex:1;min-width:180px;}
+    input[type="text"]{flex:1;min-width:130px;}
+    select:focus,input[type="text"]:focus{border-color:var(--accent);}
+    button{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;padding:10px 22px;border-radius:8px;cursor:pointer;font-size:0.86em;font-weight:600;font-family:'Inter',sans-serif;transition:opacity 0.2s,transform 0.1s;white-space:nowrap;}
+    button:hover{opacity:0.88;transform:translateY(-1px);}
+    button:active{transform:translateY(0);}
+
+    .input-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+    .input-row select{flex:2;min-width:160px;}
+    .input-row input{flex:1;min-width:120px;}
+
+    .result-box{padding:13px 18px;border-radius:8px;font-size:0.85em;font-family:'JetBrains Mono',monospace;text-align:center;display:none;word-break:break-all;}
+    .result-box.accepted{background:var(--valid-bg);color:var(--valid-fg);border:1px solid var(--valid-fg);}
+    .result-box.rejected{background:var(--invalid-bg);color:var(--invalid-fg);border:1px solid var(--invalid-fg);}
+
+    code{font-family:'JetBrains Mono',monospace;background:var(--bg-input);padding:2px 7px;border-radius:4px;color:var(--accent);font-size:0.88em;}
+    ul{color:var(--muted);padding-left:18px;line-height:2;font-size:0.86em;}
+
+    /* Footer */
+    footer{margin-top:48px;padding:24px 16px;border-top:1px solid var(--border);text-align:center;}
+    footer p{color:var(--muted);font-size:0.8em;line-height:1.8;}
+    footer .name{color:var(--accent);font-weight:600;}
+    footer .dot{color:var(--border-hi);margin:0 8px;}
+
+    /* Responsive */
+    @media(max-width:600px){
+      body{padding:20px 12px 0;}
+      .nlp-input-row{flex-direction:column;}
+      .nlp-input-row button{width:100%;}
+      .input-row{flex-direction:column;}
+      .input-row button{width:100%;}
+      .patterns-grid{grid-template-columns:1fr 1fr;}
+      table{font-size:0.75em;}
+    }
+    @media(max-width:380px){
+      .patterns-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Regex <span>Automata</span> Explorer</h1>
+    <p>Theory of Computation — Formal Regular Expressions over {0, 1}</p>
+    <div class="divider"></div>
+  </div>
+
+  <!-- NLP Card -->
+  <div class="card" id="nlpCard">
+    <div class="card-header" onclick="toggleCard('nlpCard')">
+      <div class="card-header-left">
+        <h2>Natural Language to Regular Expression <span class="badge">NLP</span></h2>
+        <p>Describe the language in plain English</p>
+      </div>
+      <div class="chevron open" id="chevron-nlpCard">&#9660;</div>
+    </div>
+    <div class="card-body open" id="body-nlpCard">
+      <hr class="card-divider"/>
+      <div class="nlp-input-row">
+        <input type="text" id="nlpInput"
+          placeholder="e.g. All binary strings that do not contain 11 as a substring"
+          onkeydown="if(event.key==='Enter') nlpConvert()"/>
+        <button onclick="nlpConvert()">Convert</button>
+      </div>
+      <div class="nlp-result" id="nlpResult"></div>
+    </div>
+  </div>
+
+  <!-- Browse Patterns Card -->
+  <div class="card" id="browseCard">
+    <div class="card-header" onclick="toggleCard('browseCard')">
+      <div class="card-header-left">
+        <h2>Browse Patterns</h2>
+        <p>Click a pattern to see full breakdown</p>
+      </div>
+      <div class="chevron" id="chevron-browseCard">&#9660;</div>
+    </div>
+    <div class="card-body" id="body-browseCard">
+      <hr class="card-divider"/>
+      <div class="patterns-grid" id="patternGrid">
+        <div style="color:var(--muted);grid-column:1/-1;text-align:center;padding:16px;font-size:0.83em;">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Panel Card -->
+  <div class="card" id="detailCard" style="display:none;">
+    <div class="card-header" onclick="toggleCard('detailCard')">
+      <div class="card-header-left">
+        <h2 id="detailTitle">Pattern Detail</h2>
+        <p>Full formal analysis</p>
+      </div>
+      <div class="chevron open" id="chevron-detailCard">&#9660;</div>
+    </div>
+    <div class="card-body open" id="body-detailCard">
+      <hr class="card-divider"/>
+      <div class="detail-section">
+        <div class="section-label">Final Regular Expression</div>
+        <div class="re-box" id="detailRE"></div>
+      </div>
+      <div class="detail-section">
+        <div class="section-label">Explanation</div>
+        <ul id="detailExplanation"></ul>
+      </div>
+      <div class="detail-section">
+        <div class="section-label">Valid Strings</div>
+        <div class="tags" id="detailValid"></div>
+      </div>
+      <div class="detail-section">
+        <div class="section-label">Invalid Strings</div>
+        <div class="tags" id="detailInvalid"></div>
+      </div>
+      <div class="detail-section">
+        <div class="section-label">Edge Cases</div>
+        <table>
+          <thead><tr><th>Case</th><th>String</th><th>Verdict</th></tr></thead>
+          <tbody id="detailEdge"></tbody>
+        </table>
+      </div>
+      <div class="detail-section">
+        <div class="section-label">Optimization Note</div>
+        <p id="detailOpt" style="color:var(--muted);font-size:0.86em;line-height:1.7;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Validator Card -->
+  <div class="card" id="validatorCard">
+    <div class="card-header" onclick="toggleCard('validatorCard')">
+      <div class="card-header-left">
+        <h2>String Validator <span class="badge">Live</span></h2>
+        <p>Test any binary string against a pattern</p>
+      </div>
+      <div class="chevron" id="chevron-validatorCard">&#9660;</div>
+    </div>
+    <div class="card-body" id="body-validatorCard">
+      <hr class="card-divider"/>
+      <div class="input-row">
+        <select id="patternSelect"><option value="">Select a pattern</option></select>
+        <input type="text" id="binaryInput" placeholder="e.g. 0101" maxlength="32"
+          onkeydown="if(event.key==='Enter') validateInput()"/>
+        <button onclick="validateInput()">Validate</button>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <p>
+    <span class="name">Vinod Prajapati</span>
+    <span class="dot">|</span>
+    Theory of Computation
+    <span class="dot">|</span>
+    Formal Languages &amp; Automata
+  </p>
+  <p style="margin-top:6px;font-size:0.74em;">Regular Expressions over the alphabet {0, 1}</p>
+</footer>
+
+<script>
+  const API = 'http://127.0.0.1:8000/api';
+
+  function toggleCard(id) {
+    const body    = document.getElementById('body-' + id);
+    const chevron = document.getElementById('chevron-' + id);
+    const isOpen  = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    chevron.classList.toggle('open', !isOpen);
+  }
+
+  async function nlpConvert() {
+    const text = document.getElementById('nlpInput').value.trim();
+    const box  = document.getElementById('nlpResult');
+    if (!text) { alert('Please enter a description.'); return; }
+    try {
+      const res  = await fetch(`${API}/nlp/`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json();
+      box.style.display = 'block';
+      if (!data.matched) {
+        box.innerHTML = `
+          <div class="nlp-error">${data.error}</div>
+          <div class="suggestions">
+            <p>Try one of these:</p>
+            ${data.suggestions.map(s =>
+              `<span onclick="document.getElementById('nlpInput').value='${s}';nlpConvert();">${s}</span>`
+            ).join('')}
+          </div>`;
+      } else {
+        box.innerHTML = `
+          <div class="nlp-re-box">${data.re}</div>
+          <div class="nlp-desc">${data.description}</div>
+          <div class="detail-section">
+            <div class="section-label" style="margin-bottom:8px;">Explanation</div>
+            <ul>${data.explanation.map(e => `<li><code>${e}</code></li>`).join('')}</ul>
+          </div>
+          <div class="detail-section" style="margin-top:14px;">
+            <div class="section-label" style="margin-bottom:8px;">Valid / Invalid</div>
+            <div class="tags">
+              ${data.valid.map(s  => `<span class="tag valid">${s||'empty'}</span>`).join('')}
+              ${data.invalid.map(s => `<span class="tag invalid">${s||'empty'}</span>`).join('')}
+            </div>
+          </div>`;
+        document.querySelectorAll('.pattern-card').forEach(c => c.classList.remove('active'));
+        document.getElementById('card-' + data.key)?.classList.add('active');
+        // open browse card so user sees the highlight
+        const browseBody = document.getElementById('body-browseCard');
+        if (!browseBody.classList.contains('open')) toggleCard('browseCard');
+      }
+      box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    } catch {
+      box.style.display = 'block';
+      box.innerHTML = '<div class="nlp-error">Cannot reach backend. Make sure Django server is running.</div>';
+    }
+  }
+
+  async function loadPatterns() {
+    try {
+      const res  = await fetch(`${API}/patterns/`);
+      const data = await res.json();
+      renderCards(data);
+      populateSelect(data);
+    } catch {
+      document.getElementById('patternGrid').innerHTML =
+        '<div style="color:var(--invalid-fg);grid-column:1/-1;text-align:center;padding:16px;font-size:0.83em;">Backend not running. Run: <code>python manage.py runserver</code></div>';
+    }
+  }
+
+  function renderCards(patterns) {
+    document.getElementById('patternGrid').innerHTML = patterns.map(p => `
+      <div class="pattern-card" onclick="loadDetail('${p.key}')" id="card-${p.key}">
+        <div class="re">${p.re}</div>
+        <div class="desc">${p.description}</div>
+      </div>`).join('');
+  }
+
+  function populateSelect(patterns) {
+    const sel = document.getElementById('patternSelect');
+    patterns.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.key; opt.textContent = p.description;
+      sel.appendChild(opt);
+    });
+  }
+
+  async function loadDetail(key) {
+    document.querySelectorAll('.pattern-card').forEach(c => c.classList.remove('active'));
+    document.getElementById(`card-${key}`)?.classList.add('active');
+    document.getElementById('patternSelect').value = key;
+
+    const res = await fetch(`${API}/patterns/${key}/`);
+    const d   = await res.json();
+
+    document.getElementById('detailTitle').textContent = d.description;
+    document.getElementById('detailRE').textContent    = d.re;
+    document.getElementById('detailExplanation').innerHTML =
+      d.explanation.map(e => `<li><code>${e}</code></li>`).join('');
+    document.getElementById('detailValid').innerHTML =
+      d.valid.map(s  => `<span class="tag valid">${s||'empty'}</span>`).join('');
+    document.getElementById('detailInvalid').innerHTML =
+      d.invalid.map(s => `<span class="tag invalid">${s||'empty'}</span>`).join('');
+    document.getElementById('detailEdge').innerHTML =
+      d.edge_cases.map(e => `<tr><td>${e.case}</td><td><code>${e.string}</code></td><td>${e.verdict}</td></tr>`).join('');
+    document.getElementById('detailOpt').textContent = d.optimization;
+
+    const card = document.getElementById('detailCard');
+    card.style.display = 'block';
+    // ensure body is open
+    const body = document.getElementById('body-detailCard');
+    const chev = document.getElementById('chevron-detailCard');
+    body.classList.add('open');
+    chev.classList.add('open');
+    card.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  async function validateInput() {
+    const key   = document.getElementById('patternSelect').value;
+    const input = document.getElementById('binaryInput').value.trim();
+    const box   = document.getElementById('resultBox');
+    if (!key) { alert('Please select a pattern.'); return; }
+    try {
+      const res  = await fetch(`${API}/validate/`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ key, input }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        box.className = 'result-box rejected';
+        box.textContent = data.error;
+      } else {
+        box.className = 'result-box ' + (data.accepted ? 'accepted' : 'rejected');
+        box.textContent = `${data.verdict}   |   Input: "${data.input}"   |   RE: ${data.re}`;
+      }
+      box.style.display = 'block';
+      // open validator card if closed
+      const vBody = document.getElementById('body-validatorCard');
+      if (!vBody.classList.contains('open')) toggleCard('validatorCard');
+    } catch {
+      box.className = 'result-box rejected';
+      box.textContent = 'Cannot reach backend.';
+      box.style.display = 'block';
+    }
+  }
+
+  loadPatterns();
+</script>
+</body>
+</html>
