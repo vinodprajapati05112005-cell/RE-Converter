@@ -75,6 +75,7 @@
     th{padding:9px 12px;border:1px solid var(--border);color:var(--accent);background:var(--bg-input);font-weight:500;text-align:left;}
     td{padding:8px 12px;border:1px solid var(--border);color:var(--text);}
     tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;}
 
     .tags{display:flex;flex-wrap:wrap;gap:8px;}
     .tag{padding:4px 12px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:0.8em;font-weight:600;}
@@ -115,7 +116,11 @@
       .input-row{flex-direction:column;}
       .input-row button{width:100%;}
       .patterns-grid{grid-template-columns:1fr 1fr;}
-      table{font-size:0.75em;}
+      .re-box,.nlp-re-box{letter-spacing:1px;word-break:break-all;}
+      .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      table{font-size:0.75em;min-width:400px;}
+      .tags{gap:6px;}
+      .tag{font-size:0.74em;padding:3px 9px;}
     }
     @media(max-width:380px){
       .patterns-grid{grid-template-columns:1fr;}
@@ -199,10 +204,12 @@
       </div>
       <div class="detail-section">
         <div class="section-label">Edge Cases</div>
-        <table>
-          <thead><tr><th>Case</th><th>String</th><th>Verdict</th></tr></thead>
-          <tbody id="detailEdge"></tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Case</th><th>String</th><th>Verdict</th></tr></thead>
+            <tbody id="detailEdge"></tbody>
+          </table>
+        </div>
       </div>
       <div class="detail-section">
         <div class="section-label">Optimization Note</div>
